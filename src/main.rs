@@ -105,7 +105,7 @@ async fn get_index() -> impl Responder {
         .body(
             r#"
             <title>Arithmetic Calculator</title>
-            <body bgcolor="maroon">
+            <body bgcolor="lagona">
             <h1 style="color: teal;"><center>Welcome To My Arithmetic Calculator</center></h1>
             <form action="/" method="post">
             <label for="operation" style="color: teal;">Choose an operation:</label>
