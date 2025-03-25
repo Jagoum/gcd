@@ -1,4 +1,4 @@
-use actix_web::{web, App, Error, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, Error, HttpResponse, HttpServer};
 use serde::Deserialize;
 
 fn gcd(a: u32, b: u32) -> u32 {
@@ -7,9 +7,15 @@ fn gcd(a: u32, b: u32) -> u32 {
     } else {
         a
     }
+    // while b > 0 {
+    //     a = b;
+    //     b = a % b;
+    // }
+    // a
 }
 
 #[allow(dead_code)]
+/// This function is to calculate the factorial of  a number
 fn factorial(n: u128) -> u128 {
     let mut fact = 1;
     for i in 1..=n {
@@ -17,13 +23,22 @@ fn factorial(n: u128) -> u128 {
     }
     fact
 }
-
 #[test]
 fn test_factorial() {
     assert_eq!(24, factorial(4))
 }
 
 #[allow(dead_code)]
+fn fizzbuzz(a: u32) -> u32 {
+    let _ = a;
+    a
+}
+
+#[allow(dead_code)]
+///The Collatz Sequence is defined as follows, for an arbitrary n1 greater than zero:
+///- If ni is 1, then the sequence terminates at ni.
+///- If ni is even, then ni+1 = ni / 2.
+///- If ni is odd, then ni+1 = 3 * ni + 1.
 fn collatz_sequence(mut n1: u128) -> u128 {
     let mut arr = 1;
     while n1 > 1 {
@@ -32,99 +47,63 @@ fn collatz_sequence(mut n1: u128) -> u128 {
     }
     arr
 }
-
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
+
     let server = HttpServer::new(|| {
         App::new()
-            .route("/", web::get().to(get_index))
-            .route("/", web::post().to(post_calculate))
+        .route("/", web::get().to(get_index))
+        .route("/", web::post().to(post_gcd))
     });
 
     println!("The server is Serving on http://localhost:3000 ");
-
-    server.bind("127.0.0.1:3000")?.run().await?;
+    
+    server.bind("127.0.0.1:3000")?
+    .run()
+    .await?;
 
     Ok(())
-}
 
+}
 #[derive(Deserialize)]
-struct CalculationParameters {
+struct GcdParameters {
     a: u32,
-    b: Option<u32>,
-    operation: String,
+    b: u32,
 }
-
-async fn post_calculate(form: web::Form<CalculationParameters>) -> impl Responder {
-    let response = match form.operation.as_str() {
-        "gcd" => {
-            if form.a == 0 || form.b.unwrap_or(0) == 0 {
-                HttpResponse::BadRequest()
-                    .content_type("text/html")
-                    .body(r#"<h1 style="color: teal;">Error</h1><p>Computing the gcd of zeroes is boring</p>"#)
-            } else {
-                let result = gcd(form.a, form.b.unwrap());
-                HttpResponse::Ok().content_type("text/html").body(format!(
-                    r#"<h1 style="color: teal;">GCD Calculation</h1>
-                    <p>The Greatest Common Divisor of the numbers {} and {} is <b>{}</b></p>
-                    <marquee> This Program Is A Product of Jagoum While Studying Rust </marquee>"#,
-                    form.a,
-                    form.b.unwrap(),
-                    result
-                ))
-            }
-        }
-        "factorial" => {
-            let result = factorial(form.a as u128);
-            HttpResponse::Ok().content_type("text/html").body(format!(
-                r#"<h1 style="color: teal;">Factorial Calculation</h1>
-                <p>The factorial of {} is <b>{}</b></p>
-                <marquee> This Program Is A Product of Jagoum While Studying Rust </marquee>"#,
-                form.a, result
-            ))
-        }
-        "collatz" => {
-            let result = collatz_sequence(form.a as u128);
-            HttpResponse::Ok().content_type("text/html").body(format!(
-                r#"<h1 style="color: teal;">Collatz Sequence Calculation</h1>
-                <p>The Collatz sequence length for {} is <b>{}</b></p>
-                <marquee> This Program Is A Product of Jagoum While Studying Rust </marquee>"#,
-                form.a, result
-            ))
-        }
-        _ => HttpResponse::BadRequest()
+async fn post_gcd(form: web::Form<GcdParameters>) -> HttpResponse {
+    if form.a == 0 || form.b == 0 {
+        return HttpResponse::BadRequest()
             .content_type("text/html")
-            .body(r#"<h1 style="color: teal;">Error</h1><p>Invalid operation</p>"#),
-    };
-    response
+            .body("<h1>Computing the gcd of zeroes is boring</h1>");
+    }
+    let response = format!(
+        r#" <div class="div"> <pre><h1><center><font color="olive"> Amazing !!!</font></center></h1>
+    <center><h4> The Greatest Common Divisor of the numbers {} and {} is <font color="red"><b>{}</b></font> </h4> </center>
+    <marquee><font color="blue"> This Program Is A Product of Jagoum While Studying Rust </font></marquee>
+    </pre>
+    </div>
+    \n"#,
+        form.a,
+        form.b,
+        gcd(form.a, form.b)
+    );
+    HttpResponse::Ok().content_type("text/html").body(response)
 }
 
-async fn get_index() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(
-            r#"
-            <title>Arithmetic Calculator</title>
-            <body bgcolor="lagona">
-            <h1 style="color: teal;"><center>Welcome To My Arithmetic Calculator</center></h1>
-            <form action="/" method="post">
-            <label for="operation" style="color: teal;">Choose an operation:</label>
-            <select name="operation" id="operation">
-                <option value="gcd">GCD</option>
-                <option value="factorial">Factorial</option>
-                <option value="collatz">Collatz Sequence</option>
-            </select>
-            <br>
-            <label for="a" style="color: teal;">First Number:</label>
-            <input type="number" id="a" name="a" required>
-            <br>
-            <label for="b" style="color: teal;">Second Number (only for GCD):</label>
-            <input type="number" id="b" name="b">
-            <br>
-            <button type="submit">Compute</button>
-            </form>
-            <marquee style="color: teal;">This Program Is A Product of Jagoum While Studying Rust</marquee>
-            </body>
-            "#,
-        )
+async fn get_index() -> HttpResponse {
+HttpResponse::Ok()
+.content_type("text/html")
+.body(
+r#"
+<title>GCD Calculator</title>
+<body bgcolor = "lagona">
+<font color="teal"><h1><center> Welcome To My GCD Calculator </center></h1> </font> 
+<form action="/" method="post">
+<font color="sky-blue"> First Number: <input type="number" name="a"/> </font>
+<font color="sky-blue"> Second Number: <input type="number" name="b"/> </font>
+<button type="submit">Compute GCD</button>
+</form>
+</body>
+"#,
+)
 }
