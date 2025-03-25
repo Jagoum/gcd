@@ -1,7 +1,7 @@
-use actix_web::{web, App, Error, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, Error, HttpResponse, HttpServer};
 use serde::Deserialize;
 
-fn gcd(a: u128, b: u128) -> u128 {
+fn gcd(a: u32, b: u32) -> u32 {
     if b > 0 {
         gcd(b, a % b)
     } else {
@@ -53,12 +53,12 @@ async fn main() -> Result<(), Error> {
     let server = HttpServer::new(|| {
         App::new()
         .route("/", web::get().to(get_index))
-        .route("/gcd", web::post().to(post_gcd))
+        .route("/", web::post().to(post_gcd))
     });
 
     println!("The server is Serving on http://localhost:3000 ");
     
-    server.bind("127.0.0.1:300")?
+    server.bind("127.0.0.1:3000")?
     .run()
     .await?;
 
@@ -67,22 +67,22 @@ async fn main() -> Result<(), Error> {
 }
 #[derive(Deserialize)]
 struct GcdParameters {
-    a: u128,
-    b: u128,
+    a: u32,
+    b: u32,
 }
 async fn post_gcd(form: web::Form<GcdParameters>) -> HttpResponse {
     if form.a == 0 || form.b == 0 {
         return HttpResponse::BadRequest()
             .content_type("text/html")
-            .body("Computing the gcd of zeroes is boring");
+            .body("<h1>Computing the gcd of zeroes is boring</h1>");
     }
     let response = format!(
-        "<pre><h1>Amazing !!!</h1>\
-    The Greatest Common Divisor of the numbers {} and {} is <b>{}</b>\
-    \
-    <marquee> This Program Is A Product of Jagoum While Studying Rust </marquee>\
+        r#" <div class="div"> <pre><h1><center><font color="olive"> Amazing !!!</font></center></h1>
+    <center><h4> The Greatest Common Divisor of the numbers {} and {} is <font color="red"><b>{}</b></font> </h4> </center>
+    <marquee><font color="blue"> This Program Is A Product of Jagoum While Studying Rust </font></marquee>
     </pre>
-    \n",
+    </div>
+    \n"#,
         form.a,
         form.b,
         gcd(form.a, form.b)
@@ -96,11 +96,14 @@ HttpResponse::Ok()
 .body(
 r#"
 <title>GCD Calculator</title>
-<form action="/gcd" method="post">
-<input type="text" name="n"/>
-<input type="text" name="m"/>
+<body bgcolor = "lagona">
+<font color="teal"><h1><center> Welcome To My GCD Calculator </center></h1> </font> 
+<form action="/" method="post">
+<font color="sky-blue"> First Number: <input type="number" name="a"/> </font>
+<font color="sky-blue"> Second Number: <input type="number" name="b"/> </font>
 <button type="submit">Compute GCD</button>
 </form>
+</body>
 "#,
 )
 }
