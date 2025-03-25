@@ -1,7 +1,7 @@
-use std::env;
+use actix_web::{web, App, Error, HttpResponse, HttpServer, Responder};
+use serde::Deserialize;
 
-fn gcd( a: u128, b: u128) -> u128 {
-    
+fn gcd(a: u128, b: u128) -> u128 {
     if b > 0 {
         gcd(b, a % b)
     } else {
@@ -13,6 +13,7 @@ fn gcd( a: u128, b: u128) -> u128 {
     // }
     // a
 }
+
 #[allow(dead_code)]
 /// This function is to calculate the factorial of  a number
 fn factorial(n: u128) -> u128 {
@@ -46,19 +47,60 @@ fn collatz_sequence(mut n1: u128) -> u128 {
     }
     arr
 }
-fn main() {
-    let mut numbers = Vec::new();
-    for arg in env::args().skip(1) {
-        let arg: u64 = arg.trim().parse().expect("Error parsing argument");
-        numbers.push(arg);
-    if numbers.len() == 0 {
-        eprintln!("Usage: gcd NUMBER ...");
-        std::process::exit(1);
-    }
-    let mut d = numbers[0];
-    for m in &numbers[1..] {
-        d = gcd(d.into(), (*m).into()) as u64;
-    }
-    println!("The greatest common divisor of {:?} is {}", numbers, d);
+#[actix_web::main]
+async fn main() -> Result<(), Error> {
+
+    let server = HttpServer::new(|| {
+        App::new()
+        .route("/", web::get().to(get_index))
+        .route("/gcd", web::post().to(post_gcd))
+    });
+
+    println!("The server is Serving on http://localhost:3000 ");
+    
+    server.bind("127.0.0.1:300")?
+    .run()
+    .await?;
+
+    Ok(())
+
 }
+#[derive(Deserialize)]
+struct GcdParameters {
+    a: u128,
+    b: u128,
+}
+async fn post_gcd(form: web::Form<GcdParameters>) -> HttpResponse {
+    if form.a == 0 || form.b == 0 {
+        return HttpResponse::BadRequest()
+            .content_type("text/html")
+            .body("Computing the gcd of zeroes is boring");
+    }
+    let response = format!(
+        "<pre><h1>Amazing !!!</h1>\
+    The Greatest Common Divisor of the numbers {} and {} is <b>{}</b>\
+    \
+    <marquee> This Program Is A Product of Jagoum While Studying Rust </marquee>\
+    </pre>
+    \n",
+        form.a,
+        form.b,
+        gcd(form.a, form.b)
+    );
+    HttpResponse::Ok().content_type("text/html").body(response)
+}
+
+async fn get_index() -> HttpResponse {
+HttpResponse::Ok()
+.content_type("text/html")
+.body(
+r#"
+<title>GCD Calculator</title>
+<form action="/gcd" method="post">
+<input type="text" name="n"/>
+<input type="text" name="m"/>
+<button type="submit">Compute GCD</button>
+</form>
+"#,
+)
 }
