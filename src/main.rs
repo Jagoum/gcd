@@ -1,13 +1,13 @@
 
-fn gcd(mut a: u128, mut b: u128) -> u128 {
+fn gcd(mut a: u128, mut b: u128) -> u128 { //   12 4 
     // if b > 0 {
     //     gcd(b, a % b)
     // } else {
     //     a
     // }
     while b > 0 {
-        b = a % b;
         a = b;
+        b = a % b;
     }
     a
 }
@@ -19,8 +19,20 @@ fn factorial(n: u128) -> u128 {
     }
     fact
 }
+#[test]
+fn test_factorial(){
+    
+    assert_eq!(24, factorial(4))
+}
+#[derive(Debug)]
+struct U32(u32);
+impl Drop for U32{
+    fn drop(&mut self) {
+        println!("Dropping {:?}",self);
+    }
+}
 
-fn fizzbuzz(a: u32) -> u32 {
+fn fizzbuzz(a: U32) -> U32 {
     let _ = a;
     a
 }
@@ -34,21 +46,25 @@ fn collatz_sequence(mut n1: u128) -> u128 {
         n1 = if n1 % 2 == 0 { n1 / 2 } else { 3 * n1 + 1 };
         arr += 1;
     }
-    arr
+    arr 
 }
 fn main() {
-    let x1 = 7;
+    let x1 = 128;
     let x2 = 7;
     dbg!(gcd(x1, x2));
     let x1 = factorial(x2);
+    let a = U32(5);
+    {
+    fizzbuzz(a);
+    }
     // gracefully handling errors
-    fizzbuzz(match x1.try_into() {
-        Ok(good) => good,
-        Err(_) => {
-            eprintln!("Please enter a u32 integer ");
-            1
-        }
-    });
+    // fizzbuzz(match x1.try_into() {
+    //     Ok(good) => good,
+    //     Err(_) => {
+    //         eprintln!("Please enter a u32 integer ");
+    //         1
+    //     }
+    // });
 
     println!(
         "Result of Collatz sequence of {x2} is {:?}",
